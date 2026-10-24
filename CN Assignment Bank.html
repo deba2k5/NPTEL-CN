@@ -1,0 +1,671 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CN Assignment Bank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: exam-paper column, sticky control strip on top, score bar fixed at bottom */
+:root{
+  --paper:#f5f6f2; --sheet:#ffffff; --ink:#1b2125; --muted:#5d686d; --rule:#dde2df;
+  --accent:#1f5c4f; --accent-soft:#e3efe9; --ok:#1e7a3c; --ok-soft:#e5f4ea; --bad:#b3261e; --bad-soft:#fbe9e7;
+  --warn:#8a5a00; --warn-soft:#fff3d6; --sel:#dfe8f7; --sel-ink:#1d3f7a;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#121615; --sheet:#1a201e; --ink:#e6ebe8; --muted:#9aa6a1; --rule:#2c3532;
+  --accent:#6fc4ad; --accent-soft:#1d3029; --ok:#6fd492; --ok-soft:#173022; --bad:#ff8a80; --bad-soft:#3a1d1b;
+  --warn:#f2c46b; --warn-soft:#352a12; --sel:#1f2e47; --sel-ink:#a9c4f2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#121615; --sheet:#1a201e; --ink:#e6ebe8; --muted:#9aa6a1; --rule:#2c3532;
+  --accent:#6fc4ad; --accent-soft:#1d3029; --ok:#6fd492; --ok-soft:#173022; --bad:#ff8a80; --bad-soft:#3a1d1b;
+  --warn:#f2c46b; --warn-soft:#352a12; --sel:#1f2e47; --sel-ink:#a9c4f2; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 120px}
+header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.1;margin:0 0 6px;text-wrap:balance;letter-spacing:-.01em}
+.code{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+header p{color:var(--muted);margin:8px 0 0;max-width:62ch}
+.coverage{margin-top:18px;border:1px solid var(--rule);background:var(--sheet);border-radius:10px;padding:14px 16px}
+.coverage summary{cursor:pointer;font-family:var(--f-display);font-weight:600}
+.cov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px;font-size:.88rem}
+.cov{border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+.cov b{font-family:var(--f-mono);font-size:.8rem}
+.cov.full{background:var(--ok-soft)} .cov.part{background:var(--warn-soft)} .cov.none{background:var(--bad-soft)}
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding-block:12px;margin-top:18px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);padding:6px 10px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--sheet);color:var(--ink);padding:7px 12px;font-family:var(--f-display);font-weight:600;font-size:.86rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.btn{border:1px solid var(--rule);background:var(--sheet);color:var(--ink);padding:7px 12px;border-radius:8px;font-family:var(--f-display);font-weight:600;font-size:.86rem;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.week-head{font-family:var(--f-display);font-weight:800;font-size:1.3rem;margin:34px 0 10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.week-head small{font-family:var(--f-mono);font-weight:400;font-size:.78rem;color:var(--muted)}
+.q{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:18px 18px 16px;margin-bottom:12px}
+.q-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.q-no{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.pts{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+.tag{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px}
+.tag.msq{background:var(--sel);color:var(--sel-ink)} .tag.num{background:var(--accent-soft);color:var(--accent)}
+.tag.unv{background:var(--warn-soft);color:var(--warn)}
+.stem{margin:8px 0 12px;font-weight:600;min-width:0}
+.stem pre,.blk{font-family:var(--f-mono);font-size:.82rem;font-weight:400;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre;margin:8px 0 0;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--rule);border-radius:8px;padding:9px 12px;cursor:pointer;min-width:0}
+.opt input{margin-top:5px;accent-color:var(--accent);flex:none}
+.opt .t{min-width:0;overflow-x:auto}
+.opt.sel{background:var(--sel);border-color:var(--sel-ink)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt.missed{border-style:dashed;border-color:var(--ok)}
+.mono{font-family:var(--f-mono);font-size:.88rem}
+.mat{display:inline-flex;align-items:center;font-family:var(--f-mono);font-size:.82rem;vertical-align:middle}
+.mat table{border-collapse:collapse;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:3px}
+.mat td{padding:1px 7px;text-align:right;font-variant-numeric:tabular-nums}
+.num-in{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.num-in input{font-family:var(--f-mono);font-size:.95rem;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);width:min(220px,100%)}
+.num-in input.right{border-color:var(--ok);background:var(--ok-soft)} .num-in input.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.fb{margin-top:12px;border-top:1px dashed var(--rule);padding-top:10px;font-size:.95rem}
+.verdict{font-family:var(--f-display);font-weight:800}
+.verdict.ok{color:var(--ok)} .verdict.no{color:var(--bad)}
+.ans{font-family:var(--f-mono);font-size:.86rem;margin:4px 0}
+.why{color:var(--ink);margin:6px 0 0}
+.note{color:var(--warn);font-size:.88rem;margin-top:6px}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--sheet);border-top:1px solid var(--rule);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-top:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.scorebar .in{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.score{font-family:var(--f-display);font-weight:800;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.score small{font-family:var(--f-mono);font-weight:400;font-size:.78rem;color:var(--muted);margin-left:8px}
+.empty{color:var(--muted);padding:20px 0}
+@media (prefers-reduced-motion:no-preference){.fb{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(-3px)}to{opacity:1;transform:none}}}
+</style>
+
+<style>
+.mine{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);margin:4px 0}
+.mine b.ok{color:var(--ok)} .mine b.no{color:var(--bad)}
+.tag.ns{background:var(--bad-soft);color:var(--bad)} .tag.miss{background:var(--warn-soft);color:var(--warn)} .tag.prac{background:var(--sel);color:var(--sel-ink)}
+.cov small{color:var(--muted)}
+.filter{display:flex;gap:8px;align-items:center;font-family:var(--f-display);font-weight:600;font-size:.86rem;cursor:pointer}
+.filter input{accent-color:var(--accent)}
+[hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="code">NOC26-CS99 · Computer Networks</div>
+    <h1>Assignment Question Bank</h1>
+    <p>All 120 questions from the Week 1–12 assignments, with the same options and the NPTEL accepted answer. Pick an answer to check it and read why it is right. Use the filter to drill only the questions you got wrong or never submitted, or take a mock test: 25 or 40 random questions across all weeks, or the full 120.</p>
+    <details class="coverage">
+      <summary>Your assignment scores</summary>
+      <div class="cov-grid" id="cov"></div>
+      <p class="note" style="margin-top:10px">Weeks 8 and 9 were not submitted, so every question in those weeks counts as one to practise.</p>
+    </details>
+  </header>
+
+  <div class="controls">
+    <div class="chips" id="weeks"></div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Mode">
+        <button id="m-practice" aria-pressed="true">Practice</button>
+        <button data-n="25" aria-pressed="false">Test 25</button>
+        <button data-n="40" aria-pressed="false">Test 40</button>
+        <button data-n="120" aria-pressed="false">Full 120</button>
+      </div>
+      <label class="filter"><input type="checkbox" id="onlyMiss"> Only wrong / unsubmitted</label>
+      <button class="btn" id="reveal">Show all answers</button>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+  </div>
+
+  <main id="list"></main>
+</div>
+
+<div class="scorebar"><div class="in">
+  <div class="score" id="score">0 / 0<small id="scoreSub"></small></div>
+  <button class="btn primary" id="submit" hidden>Submit test</button>
+</div></div>
+
+<script>
+const m = rows => `<span class="mat"><table>${rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</table></span>`;
+const BANK = [
+// ---------- WEEK 1 ----------
+{w:1,n:1,t:'mcq',q:'What is a computer network?',
+ o:['A single computer system','A collection of interconnected devices that can communicate and share resources','A software program used to browse the internet','A type of computer virus'],a:1,y:1,
+ r:'A network is two or more devices connected so they can exchange data and share resources such as files, printers and internet access.'},
+{w:1,n:2,t:'mcq',q:'What was the first successful message sent over ARPANET?',
+ o:['HELLO','LOGIN','PASSWORD','TEST'],a:1,y:1,
+ r:'In 1969 the first message was meant to be "LOGIN", but the system crashed after "LO". The intended word was LOGIN.'},
+{w:1,n:3,t:'mcq',q:'If you have 4 hops (N = 4), 15 packets (P = 15), and each packet takes 2 ms to transmit, what is the total transmission time in a packet-switched network (store-and-forward)?',
+ o:['32 ms','36 ms','40 ms','48 ms'],a:1,y:1,
+ r:'Store-and-forward time = (P + N − 1) × t = (15 + 4 − 1) × 2 = 18 × 2 = 36 ms. The first packet takes N hops; each later packet adds one more transmission time.'},
+{w:1,n:4,t:'mcq',q:'Transmission delay is defined as the time required to:',
+ o:['Travel from source to destination across the medium','Process the packet header at a router','Wait in a queue before transmission','Push all bits of a packet onto the transmission link'],a:3,y:3,
+ r:'Transmission delay = packet size ÷ link rate: the time to clock all the bits onto the wire. Travelling across the medium is propagation delay.'},
+{w:1,n:5,t:'mcq',q:'Which network is considered the predecessor of the modern Internet?',
+ o:['ARPANET','Ethernet','Extranet','Intranet'],a:0,y:1,
+ r:'ARPANET (1969) was the first packet-switched network and the direct ancestor of the Internet. Ethernet is a LAN technology, not the Internet\'s predecessor. You picked Ethernet.'},
+{w:1,n:6,t:'mcq',q:'Consider a network path with three links having bandwidths of 10 Mbps, 100 Mbps, and 5 Mbps. What is the maximum throughput of the path?',
+ o:['5 Mbps','10 Mbps','100 Mbps','115 Mbps'],a:0,y:0,
+ r:'End-to-end throughput is limited by the slowest (bottleneck) link, which is 5 Mbps.'},
+{w:1,n:7,t:'mcq',q:'What is the main advantage of packet switching over circuit switching?',
+ o:['No packet loss','Fixed transmission delay','Dedicated bandwidth throughout communication','More efficient utilization of network resources'],a:3,y:3,
+ r:'Packet switching shares links statistically, so capacity is used only when there is data to send, serving many more users than dedicated circuits.'},
+{w:1,n:8,t:'mcq',q:'Consider a 100 Mbps link. In a circuit-switching network, each user requires 25 Mbps of dedicated bandwidth. In a packet-switching network, each user also requires 25 Mbps when transmitting but is active only 10% of the time. Which statement is correct?',
+ o:['Circuit switching can support 4 users, and packet switching can support 4 users','Circuit switching can support 4 users, and packet switching can support 40 users','Circuit switching can support 40 users, and packet switching can support 4 users','Circuit switching can support 10 users, and packet switching can support 100 users'],a:1,y:1,
+ r:'Circuit: 100 ÷ 25 = 4 dedicated users. Packet: each user averages 25 × 10% = 2.5 Mbps, so 100 ÷ 2.5 = 40 users can share the link.'},
+{w:1,n:9,t:'mcq',q:'If a packet of 200 bytes is sent over a link with a capacity of 1 Mbps over a distance of 2000 km, what are the transmission delay, propagation delay, and total delay? Assume the propagation speed is 2.8×10⁸ m/s.',
+ o:['Transmission = 1.6 ms, Propagation = 7.14 ms, Total = 8.74 ms','Transmission = 1.6 ms, Propagation = 10 ms, Total = 11.6 ms','Transmission = 2.0 ms, Propagation = 7.14 ms, Total = 9.14 ms','Transmission = 1.6 ms, Propagation = 14.28 ms, Total = 15.88 ms'],a:0,y:0,
+ r:'Transmission = 200×8 ÷ 1,000,000 = 1.6 ms. Propagation = 2,000,000 m ÷ 2.8×10⁸ = 7.14 ms. Total = 1.6 + 7.14 = 8.74 ms.'},
+{w:1,n:10,t:'mcq',q:'For bursty data traffic (e.g., web browsing), which switching technique is more suitable and why?',
+ o:['Circuit switching, because it provides dedicated bandwidth','Packet switching, because it uses resources only when data is sent','Circuit switching, because it has lower delay','Both packet and circuit switching are equally suitable'],a:1,y:1,
+ r:'Bursty traffic is idle much of the time, so packet switching, which consumes capacity only during actual transmission, uses the link far more efficiently.'},
+
+// ---------- WEEK 2 ----------
+{w:2,n:1,t:'mcq',q:'Which OSI layer is responsible for routing and logical addressing?',
+ o:['Data Link Layer','Network Layer','Transport Layer','Session Layer'],a:1,y:1,
+ r:'The network layer handles logical (IP) addressing and routes packets across networks. The data link layer uses physical (MAC) addresses within one link.'},
+{w:2,n:2,t:'mcq',q:'Which function is performed by the Presentation Layer of the OSI model?',
+ o:['Error detection and correction','Flow control','Routing and addressing','Data encryption, compression, and formatting'],a:3,y:3,
+ r:'The presentation layer translates data formats, and does encryption and compression, so applications see a common representation.'},
+{w:2,n:3,t:'mcq',q:'How many layers are there in the OSI Reference Model?',
+ o:['4','5','7','8'],a:2,y:2,
+ r:'OSI has 7 layers: Physical, Data Link, Network, Transport, Session, Presentation, Application.'},
+{w:2,n:4,t:'mcq',q:'In the TCP/IP model, what is the data unit called at the Transport Layer?',
+ o:['Frame','Packet','Bit','Segment'],a:3,y:3,
+ r:'Transport layer PDU = segment (TCP) or datagram (UDP). Network layer = packet, data link = frame, physical = bits.'},
+{w:2,n:5,t:'mcq',q:'Which of the following protocols operate at the Application Layer?',
+ o:['IP','TCP','HTTP','Ethernet'],a:2,y:2,
+ r:'HTTP is an application-layer protocol. IP is network layer, TCP is transport, Ethernet is data link/physical.'},
+{w:2,n:6,t:'mcq',q:'When data moves from the Application Layer down to the Physical Layer in the OSI model, what happens to the data at each layer?',
+ o:['It is secured','Headers are added (encapsulation)','Headers are removed (decapsulation)','It is encrypted at every layer'],a:1,y:1,
+ r:'Each layer going down adds its own header (and the data link layer a trailer): this is encapsulation. Decapsulation strips them on the way up.'},
+{w:2,n:7,t:'mcq',q:'In the OSI model, which layer adds neither a header nor a trailer to the data it receives from the upper layer?',
+ o:['Transport Layer','Network Layer','Data Link Layer','Physical Layer'],a:3,y:3,
+ r:'The physical layer just transmits bits; it adds no header or trailer. The data link layer adds both a header and a trailer (e.g. FCS).'},
+{w:2,n:8,t:'mcq',q:'Both the Data Link Layer and the Transport Layer provide error detection. What is the key difference between them?',
+ o:['Data Link Layer detects errors; Transport Layer corrects errors.','Data Link Layer provides hop-by-hop error detection; Transport Layer provides end-to-end error detection.','Data Link Layer provides end-to-end error detection; Transport Layer provides hop-by-hop error detection.','Transport Layer only detects errors in TCP, not UDP.'],a:1,y:1,
+ r:'The data link layer checks each individual hop (link); the transport layer checks the whole path from source host to destination host (end-to-end).'},
+{w:2,n:9,t:'mcq',q:'In the TCP/IP model, the single Application Layer combines the functionality of which OSI layers?',
+ o:['Application, Presentation, and Session','Application, Transport, and Network','Presentation, Session, and Transport','Application, Data Link, and Physical'],a:0,y:0,
+ r:'TCP/IP folds the OSI Application, Presentation and Session layers into one Application layer.'},
+{w:2,n:10,t:'mcq',q:'Which layer of the TCP/IP model is responsible for delivering incoming data to the correct application process based on port numbers?',
+ o:['Application Layer','Internet Layer','Transport Layer','Network Access Layer'],a:2,y:2,
+ r:'The transport layer uses port numbers to demultiplex incoming segments to the right application process.'},
+
+// ---------- WEEK 3 ----------
+{w:3,n:1,t:'mcq',q:'Which protocol is primarily used to transfer web pages between a client and a web server?',
+ o:['DNS','FTP','HTTP','SMTP'],a:2,y:2,
+ r:'HTTP (HyperText Transfer Protocol) carries web pages. FTP transfers files, SMTP sends email, DNS resolves names.'},
+{w:3,n:2,t:'mcq',q:'What is the primary function of DNS?',
+ o:['Transfer files between computers','Encrypt network traffic','Manage email delivery','Convert domain names into IP addresses'],a:3,y:3,
+ r:'DNS maps human-readable names such as nptel.ac.in to IP addresses so hosts can be reached.'},
+{w:3,n:3,t:'mcq',q:'Which of the following is an example of a text-based protocol?',
+ o:['HTTP/2','DNS','HTTP/1.1','MQTT'],a:2,y:2,
+ r:'HTTP/1.1 sends human-readable ASCII request/response lines. HTTP/2, DNS and MQTT use binary encodings.'},
+{w:3,n:4,t:'mcq',q:'Which of the following is a binary protocol?',
+ o:['HTTP/2','DHCP','HTTP/1.1','SMTP'],a:0,y:0,
+ r:'HTTP/2 uses binary framing (frames and streams) for efficiency. HTTP/1.1 and SMTP are text-based.'},
+{w:3,n:5,t:'mcq',q:'What is a non-persistent HTTP connection?',
+ o:['A single TCP connection is used for multiple requests','A new TCP connection is established for each HTTP request/response','No TCP connection is required','The connection remains open indefinitely'],a:1,y:1,
+ r:'Non-persistent HTTP opens a fresh TCP connection for every object and closes it after the response. Persistent HTTP reuses one connection.'},
+{w:3,n:6,t:'mcq',q:'A client establishes a connection, requests the homepage, receives it, and then requests the logo image on the same connection. The server keeps the connection open for future requests. What is this HTTP behavior called?',
+ o:['Persistent HTTP','Non-persistent HTTP','HTTP with connection close','Stateless HTTP'],a:0,y:0,
+ r:'Reusing one TCP connection for several requests and keeping it open is persistent HTTP (the default in HTTP/1.1).'},
+{w:3,n:7,t:'mcq',q:'Which HTTP method is mainly used to retrieve data from a server?',
+ o:['POST','PUT','GET','DELETE'],a:2,y:3,
+ r:'GET retrieves a resource. POST submits data, PUT replaces/creates, DELETE removes. You picked DELETE.'},
+{w:3,n:8,t:'mcq',q:'Which character encoding is commonly used by text-based protocols?',
+ o:['Unicode','Binary Coded Decimal','EBCDIC','ASCII or UTF-8'],a:3,y:3,
+ r:'Text protocols like HTTP/1.1 and SMTP use ASCII or UTF-8, which are widely supported and human-readable.'},
+{w:3,n:9,t:'mcq',q:'A user submits a form on a website, but the server cannot understand the request because the data format is incorrect. Which status code will the server return?',
+ o:['200','301','400','404'],a:2,y:2,
+ r:'400 Bad Request means the server could not parse a malformed request. 200 = OK, 301 = moved, 404 = not found.'},
+{w:3,n:10,t:'mcq',q:'In non-persistent HTTP, how many TCP connections are required to fetch a web page with 10 images?',
+ o:['1','10','11','12'],a:2,y:2,
+ r:'One connection for the base HTML page plus one per image: 1 + 10 = 11 connections.'},
+
+// ---------- WEEK 4 ----------
+{w:4,n:1,t:'mcq',q:'In a file-sharing application like BitTorrent, users download a file from multiple other users while simultaneously uploading the files they already have. This scenario best reflects the:',
+ o:['Client-Server model','Centralized model','Distributed model','Peer-to-Peer model'],a:3,y:3,
+ r:'In P2P, each peer is both client and server, downloading from and uploading to other peers. BitTorrent is the classic example.'},
+{w:4,n:2,t:'mcq',q:'A client sends 5 pipelined requests on a persistent connection (HTTP/1.1). The second request takes long time to process. What will happen to the remaining requests?',
+ o:['The first request is delayed','All subsequent responses are delayed waiting for the second response','The connection is automatically closed','The server drops all requests'],a:1,y:1,
+ r:'HTTP/1.1 pipelining requires responses in order, so a slow second response blocks 3, 4 and 5. This is head-of-line blocking.'},
+{w:4,n:3,t:'mcq',q:'A client sends requests R1, R2, and R3 over a single HTTP/2 connection, where R2 is a large file. What is the expected behavior?',
+ o:['R3 must wait until R2 is completely transferred','The server closes the connection after sending R1','A separate TCP connection is created for R3','R1, R2, and R3 are transmitted as independent streams, so R3 is not blocked by R2'],a:3,y:3,
+ r:'HTTP/2 multiplexes requests as independent streams over one connection, so a large R2 does not block R3 at the HTTP layer.'},
+{w:4,n:4,t:'mcq',q:'Which statement about HTTP/2 is TRUE?',
+ o:['HTTP/2 uses binary framing and supports multiplexing','HTTP/2 replaces multiplexing with pipelining','HTTP/2 removes HTTP status codes','HTTP/2 cannot use persistent connections'],a:0,y:0,
+ r:'HTTP/2 introduced binary framing and true multiplexing of streams. It keeps status codes and uses one persistent connection.'},
+{w:4,n:5,t:'mcq',q:'A user enters www.nptel.ac.in into a web browser. The DNS resolver has no cached record. Which sequence of DNS servers is contacted to resolve the domain name?',
+ o:['Root DNS Server, Authoritative DNS Server, TLD Server','TLD Server, Root DNS Server, Authoritative DNS Server','Root DNS Server, TLD Server, Authoritative DNS Server','Authoritative DNS Server, Root DNS Server, TLD Server'],a:2,y:2,
+ r:'Resolution goes Root → TLD (.in) → Authoritative (nptel.ac.in). The root points to the TLD server, which points to the authoritative server.'},
+{w:4,n:6,t:'mcq',q:'In HTTP/3, when a single packet is lost during a video stream, only that specific stream is affected while others continue. Which protocol makes this possible?',
+ o:['TCP','UDP with QUIC','HTTP/1.1','FTP'],a:1,y:1,
+ r:'HTTP/3 runs over QUIC (on UDP). QUIC handles loss per-stream, so one lost packet does not stall the other streams, unlike TCP.'},
+{w:4,n:7,t:'mcq',q:'How does the DASH client determine which quality chunk to request next?',
+ o:['It randomly selects any available quality video chunk','It always requests the highest quality video chunk available','It periodically estimates server-to-client bandwidth and chooses the maximum coding rate sustainable at that time','It requests the lowest quality video chunk to save data always'],a:2,y:2,
+ r:'DASH (adaptive streaming) measures the available bandwidth and picks the highest bitrate the connection can sustain, adapting as conditions change.'},
+{w:4,n:8,t:'mcq',q:'A streaming service stores copies of video chunks on multiple geographically distributed servers. What is the primary purpose of this approach?',
+ o:['To eliminate DNS lookups','To reduce latency and improve streaming performance','To increase the quality of video chunks','To reduce the number of video chunks needed'],a:1,y:1,
+ r:'A CDN keeps content near users, cutting round-trip latency and improving throughput and reliability for streaming.'},
+{w:4,n:9,t:'mcq',q:'A user requests a video file from the nearest CDN edge server. The requested file is not available in the edge server\'s cache. What happens next?',
+ o:['The user receives a "File Not Found" error','The user must establish a new connection and try another nearest CDN server','The user must establish a new connection and download the file directly from the origin server','The CDN edge server retrieves the file from the origin server/another CDN server, delivers it to the user, and may cache it for future requests'],a:3,y:3,
+ r:'On a cache miss the edge server fetches the content from the origin (or a peer CDN), serves it to the user, and caches it so later requests are local.'},
+{w:4,n:10,t:'mcq',q:'A file-sharing application allows users to contribute their own storage and bandwidth while downloading files from other users. Which concept does this illustrate?',
+ o:['Client-Server','Peer-to-Peer','Centralized Database','Cloud Computing'],a:1,y:1,
+ r:'Peers both consume and provide resources (storage and bandwidth): the defining feature of peer-to-peer.'},
+
+// ---------- WEEK 5 ----------
+{w:5,n:1,t:'msq',q:'Which of the following are not essential services offered by a transport layer protocol?',
+ o:['Multiplexing','Segmentation','Error detection','Error correction'],a:[2,3],y:[3],
+ r:'Multiplexing and segmentation are core transport-layer jobs. Error detection and error correction are not essential — UDP, a transport protocol, offers neither as a required service. You ticked only Error correction, so partial credit.'},
+{w:5,n:2,t:'mcq',q:'Following is the name assigned to the data unit at the transport layer:',
+ o:['Packet','Chunk','Segment','Frame'],a:2,y:2,
+ r:'The transport-layer PDU is the segment. Packet is network layer, frame is data link.'},
+{w:5,n:3,t:'mcq',q:'Multiplexing and demultiplexing with TCP connection happens with:',
+ o:['Source and Destination port numbers','Source and Destination port numbers and Source and Destination IP addresses','Source and Destination IP addresses','Source IP address and Destination port number'],a:1,y:1,
+ r:'A TCP connection is identified by the 4-tuple: source IP, source port, destination IP, destination port. All four are used to demultiplex.'},
+{w:5,n:4,t:'mcq',q:'Which statement best describes multiplexing and demultiplexing in the User Datagram Protocol (UDP)?',
+ o:['Multiplexing combines data from multiple applications into UDP segments using source port numbers, while demultiplexing delivers received segments to the correct application using the destination port number.','Multiplexing encrypts UDP data before transmission, while demultiplexing decrypts it at the receiver.','Multiplexing guarantees reliable delivery of UDP packets, while demultiplexing detects and retransmits lost packets.','Multiplexing fragments large UDP packets, while demultiplexing reassembles them at the destination.'],a:0,y:0,
+ r:'UDP demultiplexes using only the destination port (and IP). A UDP socket is identified by that 2-tuple, unlike TCP\'s 4-tuple.'},
+{w:5,n:5,t:'msq',q:'Which of the following are true w.r.t UDP?',
+ o:['It incurs one RTT time for connection establishment','It does not incur any RTT for connection establishment','It has smaller header size compared to TCP','It does not provide error detection capabilities'],a:[1,2],y:[1,2],
+ r:'UDP is connectionless (no handshake, no setup RTT) and has an 8-byte header versus TCP\'s 20. It does provide an optional checksum for error detection.'},
+{w:5,n:6,t:'msq',q:'Which of the following application layer protocols use UDP?',
+ o:['DNS','SNMP','HTTP','ARP'],a:[0,1],y:[0,1],
+ r:'DNS queries and SNMP use UDP for low overhead. HTTP uses TCP; ARP is a link-layer protocol, not application-layer over UDP.'},
+{w:5,n:7,t:'mcq',q:'Which of the following fields are included in the UDP pseudo header during UDP checksum calculation?',
+ o:['Source IP Address, Destination IP Address, Protocol Number, UDP Length','Source MAC Address, Destination MAC Address, Protocol Number, UDP Checksum','Source IP Address, Destination IP Address, Source Port, Destination Port','Source MAC Address, Destination MAC Address, Source Port, Destination Port'],a:0,y:0,
+ r:'The UDP pseudo-header uses source IP, destination IP, protocol number (17) and UDP length, letting the checksum catch misdelivered datagrams.'},
+{w:5,n:8,t:'mcq',q:'The UDP pseudo header primarily provides protection against:',
+ o:['Packet losses','IP packet errors','Protocol errors','Misrouted packets'],a:3,y:3,
+ r:'Including the IP addresses in the checksum lets the receiver detect a datagram that was delivered to the wrong host (misrouted).'},
+{w:5,n:9,t:'mcq',q:'Which of the following Python statements correctly creates a UDP socket?',
+ o:['s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)','s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)','s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)','s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)'],a:1,y:2,
+ r:'UDP uses SOCK_DGRAM with the AF_INET (IPv4) family. SOCK_STREAM is TCP. You picked AF_UNIX, SOCK_STREAM.'},
+{w:5,n:10,t:'mcq',q:'In the following code snippet of a UDP socket, which line detects the end of the file transfer?',
+ pre:"import socket\ns=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)\ns.bind((\"0.0.0.0\",12345))\nname,addr = s.recvfrom(1024)\nf=open(\"recv_\"+name.decode(),\"wb\")\nwhile True:\n    d,addr=s.recvfrom(1024)\n    if d==b\"EOF\":break\n    f.write(d)\nf.close()\nprint(\"Received\",name.decode())",
+ o:['name, addr = s.recvfrom(1024)','if d == b\'EOF\': break','f.write(d)','f.close()'],a:1,y:1,
+ r:'The sender marks the end with a sentinel datagram "EOF"; the loop breaks when that is received: if d == b\'EOF\': break.'},
+
+// ---------- WEEK 6 ----------
+{w:6,n:1,t:'mcq',q:'Which of the following is not a type of error or issue encountered during network data transmission?',
+ o:['Bit errors','Burst errors','Packet drops','Arithmetic overflow'],a:3,y:3,
+ r:'Bit errors, burst errors and packet drops are transmission problems. Arithmetic overflow is a computation error inside a program, not a transmission issue.'},
+{w:6,n:2,t:'mcq',q:'A sender transmits the following bit sequence 11010110 and the receiver receives 11011110. What type of error has occurred during transmission?',
+ o:['Bit error','Byte error','Burst error','No error'],a:0,y:0,
+ r:'Comparing the two sequences, only one bit (position 5) flipped from 0 to 1 — a single-bit error.'},
+{w:6,n:3,t:'mcq',q:'A sender transmits the packets in the following order P1, P2, P3, P4, P5, P6 and the receiver receives the packets as P1, P3, P2, P5, P6. Which of the following correctly identifies the transmission issues?',
+ o:['Only packet loss has occurred','Only out-of-order delivery has occurred','Packet loss and out-of-order delivery have occurred','Duplicate packets and packet loss have occurred'],a:2,y:2,
+ r:'P4 is missing (packet loss) and P2/P3 arrived swapped (out-of-order). Both issues occurred.'},
+{w:6,n:4,t:'mcq',q:'Which of the following is an assumption made by the rdt 2.0 (Reliable Data Transfer 2.0) protocol?',
+ o:['Packets may be lost during transmission','The channel may introduce bit errors, but packets are never lost','Both packet loss and corruption may occur','ACK/NAK messages may get corrupted or lost'],a:1,y:1,
+ r:'rdt 2.0 assumes a channel that can corrupt bits but never loses packets. Loss is handled later by rdt 3.0.'},
+{w:6,n:5,t:'mcq',q:'Which of the following correctly describes the difference between ACK and NACK in reliable data transfer protocols?',
+ o:['ACK indicates packet corruption, while NACK indicates successful reception','ACK indicates successful reception of a packet, while NACK indicates that a packet was not received correctly or is corrupted','Both ACK and NACK indicate successful reception, but with different priorities','ACK and NACK are used only for detecting packet loss, not errors'],a:1,y:1,
+ r:'ACK = positive acknowledgement (received correctly); NACK = negative acknowledgement (corrupt or incorrect), asking for retransmission.'},
+{w:6,n:6,t:'mcq',q:'rdt 3.0 is designed to operate over unreliable channels that may introduce bit errors and packet loss. However, duplicate packets may still be received due to retransmissions. How does rdt 3.0 handle such duplicate packets?',
+ o:['It ignores packet loss but delivers duplicates to the application layer','It prevents duplicates by ensuring packets are never retransmitted','It uses sequence numbers to detect and discard duplicate packets at the receiver','It relies on ACK only and does not use any mechanism for duplicates'],a:2,y:2,
+ r:'rdt 3.0 numbers packets (0/1), so the receiver recognises a repeated sequence number as a duplicate and discards it while re-ACKing.'},
+{w:6,n:7,t:'mcq',q:'What is the primary mechanism used in rdt 3.0 to detect packet loss during transmission?',
+ o:['Timer','Sequence numbers','ACK/NAK mismatch','Packet reordering'],a:0,y:0,
+ r:'rdt 3.0 adds a countdown timer: if no ACK arrives before it expires, the sender assumes loss and retransmits.'},
+{w:6,n:8,t:'mcq',q:'A video streaming server is sending data to a client over a high-speed network. The link has a bandwidth of 120 Mbps, and the round-trip time (RTT) between the server and client is 80 ms. What is the Delay Bandwidth Product (DBP) for this network link?',
+ o:['9.6 Mb','12 Mb','960 Mb','0.96 Mb'],a:0,y:0,
+ r:'DBP = bandwidth × RTT = 120 Mbps × 0.08 s = 9.6 Mb (megabits), the amount of data "in flight" on the link.'},
+{w:6,n:9,t:'msq',q:'In the Go-Back N protocol the receiver on receipt of out-of-order packet does the following:',
+ o:['Can discard the packet','Re-ACK pkt with highest in-order seq #','send a NACK','Send nothing'],a:[0,1],y:[0,1],
+ r:'Go-Back-N receivers accept only in-order packets: an out-of-order packet is discarded and the receiver re-sends a cumulative ACK for the highest in-order sequence number received.'},
+{w:6,n:10,t:'mcq',q:'A sender uses Selective Repeat ARQ with a window size of 4 and sequence numbers from 0 to 7. The sender transmits packets 0, 1, 2, 3. If packet 1 is lost, while packets 0, 2, and 3 are received correctly and buffered at the receiver. Assume individual ACKs are used, and only the lost packet is retransmitted. How many ACKs are sent?',
+ o:['4','5','6','7'],a:1,y:1,
+ r:'Selective Repeat ACKs each packet individually: ACKs for 0, 2, 3 (3 ACKs), then the retransmitted 1 is received and ACKed → 5 ACKs total.'},
+
+// ---------- WEEK 7 ----------
+{w:7,n:1,t:'mcq',q:'Why does TCP use sequence numbers?',
+ o:['To encrypt transmitted data','To identify applications','To enable reliable and ordered delivery of data','To determine the IP address of the receiver'],a:2,y:2,
+ r:'Sequence numbers let the receiver order bytes correctly, detect loss and discard duplicates — the basis of TCP reliability.'},
+{w:7,n:2,t:'mcq',q:'A TCP Reno sender is in the congestion avoidance phase with a congestion window (cwnd) of 24 MSS and a slow-start threshold (ssthresh) of 16 MSS. It receives three duplicate ACKs. What will be the new values of cwnd and ssthresh immediately after this event?',
+ o:['cwnd = 24 MSS, ssthresh = 12 MSS','cwnd = 12 MSS, ssthresh = 12 MSS','cwnd = 15 MSS, ssthresh = 12 MSS','cwnd = 1 MSS, ssthresh = 12 MSS'],a:2,y:2,
+ r:'On 3 dup ACKs, Reno does fast retransmit/recovery: ssthresh = cwnd/2 = 12, then cwnd = ssthresh + 3 = 15 (for the three dup ACKs).'},
+{w:7,n:3,t:'mcq',q:'A TCP receiver advertises a receive window of 8000 bytes. The sender has transmitted bytes up to sequence number 9500 and has received an ACK up to sequence number 2000. How many additional bytes can the sender transmit immediately without violating the receiver\'s flow control limit?',
+ o:['500 bytes','1500 bytes','6000 bytes','7500 bytes'],a:0,y:0,
+ r:'Unacknowledged (in-flight) data = 9500 − 2000 = 7500. Remaining window = 8000 − 7500 = 500 bytes.'},
+{w:7,n:4,t:'mcq',q:'A TCP Tahoe connection is in the congestion avoidance phase with a congestion window (cwnd) of 20 MSS and a slow-start threshold (ssthresh) of 16 MSS. A retransmission timeout (RTO) occurs. What will be the new values of cwnd and ssthresh, and which phase will the connection enter next?',
+ o:['cwnd = 1 MSS, ssthresh = 10 MSS, enters Slow Start','cwnd = 10 MSS, ssthresh = 10 MSS, enters Congestion Avoidance','cwnd = 13 MSS, ssthresh = 16 MSS, enters Fast Recovery','cwnd = 20 MSS, ssthresh = 16 MSS, remains in Congestion Avoidance'],a:0,y:0,
+ r:'On a timeout, Tahoe sets ssthresh = cwnd/2 = 10, drops cwnd to 1 MSS, and restarts in Slow Start.'},
+{w:7,n:5,t:'mcq',q:'A TCP receiver has a receive buffer size of 10,000 bytes. The last byte received is 8,500, and the last byte read by the receiving application is 3,500. What advertised window (rwnd) value should the receiver send?',
+ o:['1500 bytes','3500 bytes','5000 bytes','8500 bytes'],a:2,y:2,
+ r:'Buffered unread data = 8500 − 3500 = 5000. rwnd = buffer − buffered = 10000 − 5000 = 5000 bytes.'},
+{w:7,n:6,t:'mcq',q:'Assume that the TCP sender\'s window size permits the transmission of four TCP segments. Which statement is correct?',
+ o:['The sender must receive an ACK after every segment before transmitting the next segment','The sender can transmit up to four TCP segments before waiting for acknowledgments','The sender can transmit only one TCP segment at a time','The sender retransmits every segment immediately after transmission'],a:1,y:1,
+ r:'A window of four lets the sender have up to four unacknowledged segments outstanding before it must wait for ACKs (pipelining).'},
+{w:7,n:7,t:'mcq',q:'A TCP connection has a congestion window (cwnd) of 12,000 bytes and a receiver advertised window (rwnd) of 8,000 bytes. The sender has transmitted data up to byte 15,000 and has received ACKs up to byte 9,000. How much more data can the sender transmit?',
+ o:['2000 bytes','3000 bytes','4000 bytes','6000 bytes'],a:0,y:0,
+ r:'Usable window = min(cwnd, rwnd) = 8000. In-flight = 15000 − 9000 = 6000. Remaining = 8000 − 6000 = 2000 bytes.'},
+{w:7,n:8,t:'mcq',q:'What is the primary purpose of TCP flow control?',
+ o:['Prevent packet corruption during transmission','Prevent the sender from overwhelming the receiver','Prevent congestion in the network routers','Prevent unauthorized access to transmitted data'],a:1,y:1,
+ r:'Flow control (via the advertised window) stops a fast sender from overrunning a slow receiver\'s buffer. Congestion control handles the network.'},
+{w:7,n:9,t:'mcq',q:'A TCP connection begins in the Slow Start phase with an initial congestion window (cwnd) of 1 MSS. Assuming no packet loss occurs, what will be the value of cwnd after 4 RTTs?',
+ o:['4 MSS','8 MSS','16 MSS','32 MSS'],a:2,y:2,
+ r:'Slow Start doubles cwnd each RTT: 1 → 2 → 4 → 8 → 16 MSS after 4 RTTs.'},
+{w:7,n:10,t:'mcq',q:'In an implicit congestion notification mechanism, the sender typically detects network congestion based on:',
+ o:['Router generated congestion messages','The ECE flag set in the TCP header','The receiver\'s advertised window (rwnd)','Packet loss or increased round-trip delay'],a:3,y:3,
+ r:'Implicit signals are inferred by the end host from packet loss (timeouts, dup ACKs) or rising RTT. Router messages and the ECE flag are explicit (ECN).'},
+
+// ---------- WEEK 8 (not submitted) ----------
+{w:8,n:1,t:'mcq',q:'Which of the following is the primary function of forwarding in the network layer?',
+ o:['Selecting the shortest path between networks','Assigning IP addresses to hosts','Detecting transmission errors','Moving packets from an input link to the appropriate output link'],a:3,
+ r:'Forwarding is the local, per-router action of moving a packet from an input port to the correct output port. Choosing paths across the network is routing.'},
+{w:8,n:2,t:'mcq',q:'If a router\'s output buffer is full and a new packet arrives, which drop policy is typically applied, where the newest packet is dropped?',
+ o:['Random Early Detection','Tail Drop','Priority Drop','Head Drop'],a:1,
+ r:'Tail Drop discards the arriving (newest) packet when the queue is full. RED drops probabilistically before the queue fills.'},
+{w:8,n:3,t:'mcq',q:'A router\'s forwarding table contains the following entries. A packet destined for 192.168.10.144 arrives. Which entry will be used for forwarding?',
+ pre:'Prefix              Interface\n192.168.0.0/16      Interface A\n192.168.10.0/24     Interface B\n192.168.10.128/25   Interface C',
+ o:['192.168.0.0/14','192.168.0.0/16','192.168.10.0/24','192.168.10.128/25'],a:3,
+ r:'Longest Prefix Matching picks the most specific match. 144 is in 192.168.10.128/25 (covers .128–.255), which is longer than /24 and /16.'},
+{w:8,n:4,t:'mcq',q:'If the switching fabric is slower than the combined input port rates, what may occur?',
+ o:['Packet duplication','Queueing at input ports','Packet encryption','Routing loops'],a:1,
+ r:'When the fabric cannot keep up with the inputs, packets wait in input-port queues (and can suffer head-of-line blocking).'},
+{w:8,n:5,t:'mcq',q:'Which scheduling algorithm allocates bandwidth fairly while assigning different weights to different traffic classes?',
+ o:['Tail drop','Round robin','Priority scheduling','Weighted fair queueing'],a:3,
+ r:'Weighted Fair Queueing (WFQ) gives each class a share of bandwidth proportional to its weight, combining fairness with prioritisation.'},
+{w:8,n:6,t:'mcq',q:'In the input port of a router, what functions are typically performed?',
+ o:['Packet scheduling and output queueing','Routing algorithm calculation and forwarding table updates','Line termination, decapsulation, and forwarding table lookup','Segmentation and reassembly of data'],a:2,
+ r:'The input port terminates the physical line, decapsulates the frame, and looks up the destination in the forwarding table to pick the output port.'},
+{w:8,n:7,t:'mcq',q:'Output buffering is required when:',
+ o:['Output link speed is greater than arrival rate','Routers have empty queues','Routing tables become full','Arrival rate exceeds output link transmission speed'],a:3,
+ r:'When packets arrive at an output port faster than the link can send them, they must be buffered in the output queue.'},
+{w:8,n:8,t:'mcq',q:'Why is Longest Prefix Matching used in IP routing?',
+ o:['It always selects the route with the fewest network hops','It is required by the TCP protocol to establish a connection','It allows routers to forward packets using only the destination MAC address','It is necessary because of the hierarchical and classless nature of IP addressing to select the most specific matching route'],a:3,
+ r:'With CIDR, prefixes of different lengths can overlap. LPM picks the most specific (longest) matching prefix, which best reflects the hierarchical address structure.'},
+{w:8,n:9,t:'mcq',q:'What is the primary function of a Ternary Content Addressable Memory (TCAM) in a modern router?',
+ o:['To store routing tables and perform Longest Prefix Matching in a single clock cycle','To perform routing calculations for the control plane','To buffer packets that are experiencing output port contention','To convert IP addresses from decimal to binary format'],a:0,
+ r:'TCAM matches a destination against all stored prefixes in parallel (with "don\'t care" bits), returning the longest match in one clock cycle for line-rate forwarding.'},
+{w:8,n:10,t:'mcq',q:'A router\'s forwarding table is given. For a packet destined to IP address 10.1.2.99, which port will the router use?',
+ pre:'Prefix          Output Port\n10.0.0.0/8      Port 1\n10.1.0.0/16     Port 2\n10.1.2.0/24     Port 3\n10.1.3.0/24     Port 4',
+ o:['Port 1','Port 2','Port 3','Port 4'],a:2,
+ r:'10.1.2.99 matches 10.0.0.0/8, 10.1.0.0/16 and 10.1.2.0/24. The longest prefix is /24 → Port 3.'},
+
+// ---------- WEEK 9 (not submitted) ----------
+{w:9,n:1,t:'mcq',q:'Which routing algorithm requires every router to have complete knowledge of the network topology?',
+ o:['Distance vector','Link state','RIP','DHCP'],a:1,
+ r:'Link-state routing floods link-state info so every router builds the full topology map and runs Dijkstra. Distance vector knows only its neighbours.'},
+{w:9,n:2,t:'mcq',q:'In Poisoned Reverse, if y is the next hop for z to reach destination x, what does z advertise to y?',
+ o:['The normal distance to x','A reduced metric to x','That its distance to x is infinity','A better alternative path'],a:2,
+ r:'Poisoned reverse advertises an infinite distance back to the neighbour it routes through, so that neighbour never tries to route to x via z. It strengthens split horizon.'},
+{w:9,n:3,t:'mcq',q:'Which loop prevention technique prevents advertising a route back to the router from which it was learned?',
+ o:['Route poisoning','Dijkstra algorithm','HELLO protocol','Split horizon'],a:3,
+ r:'Split horizon: a router does not advertise a route back out the interface it learned it on, which helps prevent routing loops.'},
+{w:9,n:4,t:'mcq',q:'The Count-to-Infinity problem is associated with:',
+ o:['OSPF','DHCP','Distance Vector Routing','IS-IS'],a:2,
+ r:'Count-to-infinity happens in distance-vector protocols when a failure makes metrics increase slowly through mutual advertisements. Link-state protocols (OSPF, IS-IS) avoid it.'},
+{w:9,n:5,t:'mcq',q:'How often does RIP send routing updates by default?',
+ o:['Every 15 seconds','Every 30 seconds','Every 60 seconds','Every 90 seconds'],a:1,
+ r:'RIP broadcasts its full routing table every 30 seconds by default.'},
+{w:9,n:6,t:'mcq',q:'In Distance Vector routing, what is the meaning of "Triggered Update"?',
+ o:['Propagating link failure information immediately','Sending updates exactly every 30 seconds','Updating the routing table every 15 hops','Sending HELLO messages continuously'],a:0,
+ r:'A triggered update sends a change immediately instead of waiting for the periodic timer, speeding up convergence after a failure.'},
+{w:9,n:7,t:'mcq',q:'What happens when HELLO messages stop arriving in OSPF?',
+ o:['The router continues normal operation','The neighbor is considered down and routes are recalculated','The router initiates a DHCP request','The router increases its hop count'],a:1,
+ r:'OSPF uses Hello packets as keepalives. If none arrive within the dead interval, the neighbour is declared down and the topology (SPF) is recomputed.'},
+{w:9,n:8,t:'mcq',q:'RIP uses which transport protocol and port number?',
+ o:['TCP 80','TCP 179','UDP 520','UDP 53'],a:2,
+ r:'RIP runs over UDP port 520. TCP 179 is BGP; UDP 53 is DNS.'},
+{w:9,n:9,t:'mcq',q:'What is the maximum valid hop count allowed in RIP?',
+ o:['14','15','16','30'],a:1,
+ r:'RIP allows up to 15 hops; a metric of 16 means "infinity" (unreachable). This limits RIP to small networks.'},
+{w:9,n:10,t:'mcq',q:'Which of the following is NOT a characteristic of Link State routing?',
+ o:['Routers share entire routing tables with neighbors','Routers calculate shortest path using Dijkstra','Routers maintain a synchronized view of network topology','Routers exchange link-state databases'],a:0,
+ r:'Sharing whole routing tables with neighbours is distance-vector behaviour. Link-state routers flood link-state advertisements and run Dijkstra on a synchronized map.'},
+
+// ---------- WEEK 10 ----------
+{w:10,n:1,t:'mcq',q:'What port does BGP use to establish TCP sessions between routers?',
+ o:['53','80','179','443'],a:2,y:2,
+ r:'BGP peers open a TCP connection on port 179.'},
+{w:10,n:2,t:'mcq',q:'What information does BGP advertise?',
+ o:['MAC addresses','IP prefixes and path information','DNS records','VLAN IDs'],a:1,y:1,
+ r:'BGP advertises reachable IP prefixes together with path attributes such as the AS-PATH, which it uses for policy and loop prevention.'},
+{w:10,n:3,t:'mcq',q:'Which ICMPv6 protocol replaces ARP in IPv6 networks?',
+ o:['IGMP','DHCPv6','DNS','NDP'],a:3,y:3,
+ r:'The Neighbor Discovery Protocol (NDP), part of ICMPv6, resolves link-layer addresses in IPv6, taking over ARP\'s role.'},
+{w:10,n:4,t:'mcq',q:'Which BGP message is exchanged first after a TCP connection is established?',
+ o:['UPDATE','KEEPALIVE','OPEN','ECHO'],a:2,y:2,
+ r:'After the TCP handshake, peers exchange OPEN messages to negotiate parameters (AS number, hold time) and establish the BGP session.'},
+{w:10,n:5,t:'mcq',q:'Which BGP message is used to maintain an established session?',
+ o:['OPEN','UPDATE','RESET','KEEPALIVE'],a:3,y:3,
+ r:'KEEPALIVE messages are sent periodically to keep the session alive when there are no route changes to send.'},
+{w:10,n:6,t:'mcq',q:'Hot Potato Routing selects the:',
+ o:['Closest NEXT-HOP router','Longest AS-PATH','Highest bandwidth link','Lowest router ID'],a:0,y:0,
+ r:'Hot-potato routing hands traffic off to the nearest egress (closest next-hop by IGP cost) as quickly as possible, minimising cost within the AS.'},
+{w:10,n:7,t:'mcq',q:'ICMP messages are encapsulated inside:',
+ o:['TCP segments','IP packets','UDP datagrams','Ethernet frames only'],a:1,y:1,
+ r:'ICMP messages ride directly inside IP packets (protocol number 1), not inside TCP or UDP.'},
+{w:10,n:8,t:'mcq',q:'Which network utility uses ICMP Echo Request and Echo Reply messages?',
+ o:['FTP','Telnet','SMTP','Ping'],a:3,y:3,
+ r:'Ping sends ICMP Echo Requests (type 8) and listens for Echo Replies (type 0) to test reachability and round-trip time.'},
+{w:10,n:9,t:'mcq',q:'Which ICMP message informs a host about a better route to a destination?',
+ o:['Destination Unreachable','Time Exceeded','Redirect','Parameter Problem'],a:2,y:2,
+ r:'An ICMP Redirect tells a host to use a better first-hop router for a particular destination.'},
+{w:10,n:10,t:'mcq',q:'Which ICMP message is generated when a packet\'s TTL expires?',
+ o:['Destination Unreachable','Time Exceeded','Redirect','Echo Reply'],a:1,y:1,
+ r:'When TTL reaches 0 the router drops the packet and sends ICMP Time Exceeded — the mechanism traceroute relies on.'},
+
+// ---------- WEEK 11 ----------
+{w:11,n:1,t:'mcq',q:'Which of the following is NOT a primary service provided by the Link Layer?',
+ o:['Framing','Error detection','Reliable delivery over a link','End-to-end process communication'],a:3,y:3,
+ r:'The link layer works hop-by-hop: framing, error detection, and (on some links) reliable per-link delivery. End-to-end process communication is the transport layer\'s job.'},
+{w:11,n:2,t:'mcq',q:'In CSMA, what does a station do before transmitting?',
+ o:['Listens to the channel to check if another device is transmitting','Sends a request to the receiver','Waits for a token to arrive','Divides the channel into frequency bands'],a:0,y:0,
+ r:'Carrier Sense Multiple Access: a station senses the medium and transmits only if it is idle, reducing collisions.'},
+{w:11,n:3,t:'mcq',q:'A collision occurs when:',
+ o:['A frame reaches its destination','A router drops a packet','A switch receives duplicate MAC addresses','Two or more stations transmit simultaneously on a shared medium'],a:3,y:3,
+ r:'A collision is two or more stations transmitting at the same time on a shared medium, so their signals overlap and corrupt each other.'},
+{w:11,n:4,t:'mcq',q:'In RTS/CTS communication, which message is sent first?',
+ o:['CTS','RTS','ACK','DATA'],a:1,y:1,
+ r:'The sender first transmits RTS (Request To Send); the receiver replies CTS (Clear To Send). This reserves the medium and tackles the hidden-terminal problem.'},
+{w:11,n:5,t:'mcq',q:'Which technique adds redundant bits so that some errors can be corrected without retransmission?',
+ o:['ARQ','CRC','Forward Error Correction','Backward Error Correction'],a:2,y:2,
+ r:'Forward Error Correction (FEC) adds redundancy (e.g. Hamming codes) so the receiver can fix certain errors itself, with no retransmission.'},
+{w:11,n:6,t:'mcq',q:'Which error detection technique is especially effective at detecting burst errors?',
+ o:['Simple parity','Two-dimensional parity','Checksum','Cyclic Redundancy Check'],a:3,y:3,
+ r:'CRC, based on polynomial division, reliably catches burst errors up to the length of the CRC, which is why it is used in Ethernet and Wi-Fi.'},
+{w:11,n:7,t:'mcq',q:'What is the function of the jam signal in CSMA/CD?',
+ o:['To start transmission','To indicate a successful transmission','To inform all stations about a collision','To request retransmission from the sender'],a:2,y:2,
+ r:'After detecting a collision, a station sends a jam signal so every station is sure a collision happened and all back off before retrying.'},
+{w:11,n:8,t:'mcq',q:'What is two-dimensional parity checking used for?',
+ o:['Flow control','Forward error correction','Link access control','Framing'],a:1,y:1,
+ r:'2D parity pinpoints the row and column of a single flipped bit, so that bit can be corrected — a form of forward error correction.'},
+{w:11,n:9,t:'mcq',q:'Why is error detection performed at every hop in the Link Layer?',
+ o:['To replace transport-layer reliability','To reduce packet size','To reduce routing complexity','To discard corrupted frames early and avoid wasting network resources'],a:3,y:3,
+ r:'Catching errors per hop lets a router drop a corrupted frame immediately instead of carrying it further and wasting downstream bandwidth.'},
+{w:11,n:10,t:'mcq',q:'Wireless networks require stronger error detection because they are more affected by:',
+ o:['Encryption','Routing loops','Interference','IP fragmentation'],a:2,y:2,
+ r:'Wireless channels suffer high bit-error rates from interference, fading and noise, so they need stronger error detection and correction.'},
+
+// ---------- WEEK 12 ----------
+{w:12,n:1,t:'mcq',q:'A MAC address is typically how many bits long?',
+ o:['16 bits','32 bits','48 bits','64 bits'],a:2,y:3,
+ r:'A MAC address is 48 bits (6 bytes), e.g. 00:1A:2B:3C:4D:5E. You picked 64 bits. (32 bits is an IPv4 address.)'},
+{w:12,n:2,t:'mcq',q:'Traffic between different VLANs requires the use of a:',
+ o:['Bridge','Hub','Repeater','Layer 3 device'],a:3,y:3,
+ r:'VLANs are separate broadcast domains, so moving traffic between them needs routing — a Layer 3 device (router or L3 switch).'},
+{w:12,n:3,t:'mcq',q:'What does an ARP cache store?',
+ o:['Port numbers and socket information','IP address and MAC address pairs','Domain names and IP addresses','Routes to different networks'],a:1,y:1,
+ r:'The ARP cache holds recently resolved IP-to-MAC mappings so the host need not ARP for every frame.'},
+{w:12,n:4,t:'mcq',q:'The main function of a MAC address is to:',
+ o:['Identify websites','Route packets across the Internet','Deliver frames within the same LAN','Assign IP addresses'],a:2,y:2,
+ r:'MAC addresses identify interfaces for frame delivery within a single LAN (one broadcast domain). Routing across networks uses IP addresses.'},
+{w:12,n:5,t:'mcq',q:'How is an ARP request sent to all hosts on a LAN?',
+ o:['As a unicast message to the router','As a broadcast message','As a multicast message to a specific group','As a unicast message to all hosts sequentially'],a:1,y:1,
+ r:'ARP requests go to the broadcast MAC address (FF:FF:FF:FF:FF:FF) so every host on the LAN sees it; only the owner of the target IP replies.'},
+{w:12,n:6,t:'mcq',q:'Which protocol maps an IP address to a MAC address?',
+ o:['DHCP','DNS','ARP','ICMP'],a:2,y:2,
+ r:'ARP (Address Resolution Protocol) finds the MAC address for a known IPv4 address on the local network.'},
+{w:12,n:7,t:'mcq',q:'A network administrator creates VLAN 10 for the Computer Science Department and VLAN 20 for the Electrical Department on the same switch. PC X belongs to VLAN 10, and PC Y belongs to VLAN 20. PC X sends an ARP broadcast. What happens to the ARP broadcast?',
+ o:['It is received by all devices in both VLAN 10 and VLAN 20','It is received only by devices in VLAN 10','It is received only by PC Y in VLAN 20','It is discarded by the switch'],a:1,y:1,
+ r:'Each VLAN is its own broadcast domain, so PC X\'s broadcast stays within VLAN 10 and never reaches VLAN 20.'},
+{w:12,n:8,t:'mcq',q:'Which transmission mode allows simultaneous communication in both directions?',
+ o:['Simplex','Half duplex','Full duplex','Broadcast'],a:2,y:2,
+ r:'Full duplex allows both ends to send and receive at the same time. Half duplex is one direction at a time; simplex is one direction only.'},
+{w:12,n:9,t:'mcq',q:'What is the technique used to convert binary data into digital signals for transmission?',
+ o:['Modulation','Encryption','Demodulation','Line coding'],a:3,y:3,
+ r:'Line coding (e.g. NRZ, Manchester) maps bits to the voltage/signal levels used on a digital link. Modulation maps bits onto an analog carrier.'},
+{w:12,n:10,t:'mcq',q:'Which technology became the dominant LAN technology?',
+ o:['Ethernet','Token Ring','ATM','FDDI'],a:0,y:0,
+ r:'Ethernet won out for LANs thanks to its simplicity, low cost and scalability. Token Ring, ATM and FDDI are largely obsolete.'},
+
+];
+const L='abcdef';
+const arrEq=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&[...a].sort().join()===[...b].sort().join();
+function keyMatch(q,v){
+  if(v===undefined||v===null||v==='')return false;
+  if(q.t==='num'){const x=parseFloat(String(v).replace(/,/g,''));return !isNaN(x)&&x>=q.range[0]-1e-9&&x<=q.range[1]+1e-9}
+  if(q.t==='msq')return arrEq(v,q.a);
+  return v===q.a||(q.alt&&q.alt.includes(v));
+}
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+BANK.forEach(q=>{q.id=`w${q.w}q${q.n}`;q.ns=q.y===undefined;q.miss=q.ns||!keyMatch(q,q.y)});
+let state=store.get('cn-bank-state',{week:'all',mode:'practice',ans:{},checked:{},submitted:false,reveal:false,onlyMiss:false});
+let order=BANK.map((_,i)=>i);
+const $=s=>document.querySelector(s);
+const save=()=>store.set('cn-bank-state',state);
+const isRight=(q,v)=>keyMatch(q,v);
+const shown=q=>state.reveal||state.checked[q.id]||(state.mode==='test'&&state.submitted);
+const inView=q=>state.mode==='test'?(state.testIds||[]).includes(q.id):(state.week==='all'||q.w===state.week)&&(!state.onlyMiss||q.miss);
+
+const TOPIC={1:'Introduction & switching',2:'OSI / TCP-IP layering',3:'Application layer & HTTP',4:'HTTP/2-3, DNS, CDN, P2P',5:'Transport layer & UDP',6:'Errors & reliable transfer',7:'TCP flow & congestion',8:'Router internals & forwarding',9:'Routing algorithms',10:'BGP & ICMP',11:'Link layer & error detection',12:'MAC, ARP, VLAN, Ethernet'};
+const SCORE={};
+for(let w=1;w<=12;w++){const qs=BANK.filter(q=>q.w===w);if(!qs.length)continue;
+  SCORE[w]=qs[0].ns?'not submitted':`you scored ${qs.filter(q=>keyMatch(q,q.y)).length}/10`}
+
+function render(){
+  const W=$('#weeks');W.innerHTML='';
+  ['all',...Array.from({length:12},(_,i)=>i+1)].forEach(w=>{const b=document.createElement('button');b.className='chip';
+    b.textContent=w==='all'?'All weeks':`W${w}`;b.setAttribute('aria-pressed',String(state.week===w));
+    b.onclick=()=>{state.week=w;save();render()};W.appendChild(b)});
+  $('#m-practice').setAttribute('aria-pressed',String(state.mode==='practice'));
+  document.querySelectorAll('[data-n]').forEach(b=>b.setAttribute('aria-pressed',String(state.mode==='test'&&state.testN==+b.dataset.n)));
+  const T=state.mode==='test';$('#weeks').hidden=T;$('#onlyMiss').parentElement.hidden=T;$('#reveal').hidden=T;
+  $('#reveal').textContent=state.reveal?'Hide answers':'Show all answers';
+  $('#submit').hidden=!T;$('#submit').textContent=state.submitted?'New test':'Submit test';
+  const Lst=$('#list');Lst.innerHTML='';
+  const qs=T?(state.testIds||[]).map(id=>BANK.find(q=>q.id===id)).filter(Boolean):order.map(i=>BANK[i]).filter(inView);
+  if(!qs.length)Lst.innerHTML='<p class="empty">No questions match this filter.</p>';
+  const byWeek=!T&&order.every((v,i)=>v===i);let lastW=null;
+  qs.forEach((q,k)=>{
+    if(byWeek&&q.w!==lastW){lastW=q.w;const h=document.createElement('div');h.className='week-head';
+      h.innerHTML=`Week ${q.w} <small>${TOPIC[q.w]} · ${SCORE[q.w]}</small>`;Lst.appendChild(h)}
+    Lst.appendChild(card(q,k));
+  });
+  updateScore();
+}
+
+function ansText(q){
+  if(q.t==='num')return `Numeric: ${q.range[0]}`;
+  const base=(Array.isArray(q.a)?q.a:[q.a]).map(i=>`(${L[i]})`).join(' + ');
+  return q.alt?`${base}  (also accepts ${q.alt.map(i=>`(${L[i]})`).join(', ')})`:base;
+}
+function mineText(q){
+  if(q.prac)return '<div class="mine">Week 0 practice — not graded by NPTEL</div>';
+  if(q.ns)return '<div class="mine">In the assignment: not submitted</div>';
+  const ok=keyMatch(q,q.y);
+  const mark=ok?'<b class="ok">correct</b>':'<b class="no">wrong</b>';
+  let picked;
+  if(q.t==='num')picked=q.y;
+  else if(q.t==='msq')picked=q.y.map(i=>`(${L[i]})`).join(' + ');
+  else picked=`(${L[q.y]})`;
+  return `<div class="mine">In the assignment you picked ${picked} — ${mark}</div>`;
+}
+
+function card(q,k){
+  const el=document.createElement('section');el.className='q';
+  const v=state.ans[q.id];const sh=shown(q);
+  const typeTag=q.t==='msq'?'<span class="tag msq">select all</span>':q.t==='num'?'<span class="tag num">fill in</span>':'';
+  let stTag='';
+  if(!(state.mode==='test'&&!state.submitted)){
+    stTag=q.prac?'<span class="tag prac">practice</span>':q.ns?'<span class="tag ns">not submitted</span>':q.miss?'<span class="tag miss">you got this wrong</span>':'';
+  }
+  let html=`<div class="q-top"><span class="q-no">${state.mode==='test'?`#${k+1} · `:''}W${q.w} · Q${q.n}${typeTag}${stTag}</span><span class="pts">1 pt</span></div>
+  <div class="stem">${q.q}${q.pre?`<pre>${q.pre}</pre>`:''}</div>`;
+  if(q.t==='num'){
+    const cls=sh&&v!=null&&v!==''?(isRight(q,v)?'right':'wrong'):'';
+    html+=`<div class="num-in"><input id="in-${q.id}" inputmode="decimal" autocomplete="off" placeholder="Type your answer" value="${v??''}" class="${cls}"></div>`;
+  }else{
+    html+='<div class="opts">'+q.o.map((o,i)=>{
+      const picked=q.t==='msq'?(v||[]).includes(i):v===i;
+      const correct=Array.isArray(q.a)?q.a.includes(i):(q.a===i||(q.alt&&q.alt.includes(i)));
+      let cls=picked?'sel':'';
+      if(sh){if(correct&&picked)cls='right';else if(picked)cls='wrong';else if(correct)cls='missed right'}
+      return `<label class="opt ${cls}"><input type="${q.t==='msq'?'checkbox':'radio'}" name="${q.id}" ${picked?'checked':''}><span class="t"><span class="mono">${L[i]})</span> ${o}</span></label>`;
+    }).join('')+'</div>';
+  }
+  if(state.mode==='practice'&&!state.reveal){
+    html+=`<div class="actions">${q.t!=='mcq'?`<button class="btn primary" data-act="check">Check</button>`:''}${state.checked[q.id]?'<button class="btn" data-act="retry">Try again</button>':'<button class="btn" data-act="show">Show answer</button>'}</div>`;
+  }
+  if(sh){
+    const att=q.t==='msq'?(v&&v.length):(v!=null&&v!=='');
+    const verdict=!att?'<span class="verdict">Answer</span>':isRight(q,v)?'<span class="verdict ok">Correct</span>':'<span class="verdict no">Not quite</span>';
+    html+=`<div class="fb">${verdict}<div class="ans">Accepted answer: ${ansText(q)}</div>${mineText(q)}<p class="why">${q.r}</p></div>`;
+  }
+  el.innerHTML=html;
+  if(q.t==='num'){
+    const inp=el.querySelector('input');
+    inp.addEventListener('input',()=>{state.ans[q.id]=inp.value;save();updateScore()});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&state.mode==='practice'){state.checked[q.id]=true;save();render()}});
+  }else{
+    el.querySelectorAll('.opt input').forEach((inp,i)=>inp.addEventListener('change',()=>{
+      if(state.mode==='test'&&state.submitted)return render();
+      if(q.t==='msq'){const cur=new Set(state.ans[q.id]||[]);inp.checked?cur.add(i):cur.delete(i);state.ans[q.id]=[...cur].sort((x,y)=>x-y)}
+      else{state.ans[q.id]=i;if(state.mode==='practice')state.checked[q.id]=true}
+      save();render();
+    }));
+  }
+  el.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.act;
+    if(a==='check'||a==='show')state.checked[q.id]=true;
+    if(a==='retry'){delete state.checked[q.id];delete state.ans[q.id]}
+    save();render();
+  });
+  return el;
+}
+
+function updateScore(){
+  const qs=BANK.filter(inView);let got=0,done=0;
+  qs.forEach(q=>{const v=state.ans[q.id];const att=q.t==='msq'?(v&&v.length):(v!=null&&v!=='');if(att)done++;
+    if(state.mode==='test'&&!state.submitted)return;
+    if(state.mode==='practice'&&!state.checked[q.id])return;
+    if(isRight(q,v))got++});
+  const pct=qs.length?Math.round(got/qs.length*100):0;
+  $('#score').innerHTML=(state.mode==='test'&&!state.submitted)
+    ?`${done} / ${qs.length} answered<small>submit to see your score</small>`
+    :`${got} / ${qs.length} correct<small>${pct}% · ${done}/${qs.length} answered</small>`;
+}
+
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function startTest(n){
+  const pools={};BANK.forEach(q=>(pools[q.w]=pools[q.w]||[]).push(q.id));Object.values(pools).forEach(shuf);
+  const ids=[];while(ids.length<n){let added=false;for(const w of shuf(Object.keys(pools))){if(ids.length>=n)break;const p=pools[w];if(p.length){ids.push(p.pop());added=true}}if(!added)break}
+  if(state.mode!=='test'){state.pAns=state.ans;state.pChecked=state.checked}
+  state.mode='test';state.testN=n;state.testIds=shuf(ids);state.ans={};state.checked={};state.submitted=false;state.reveal=false;save();render();window.scrollTo({top:0});
+}
+document.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>startTest(+b.dataset.n));
+$('#m-practice').onclick=()=>{if(state.mode==='test'){state.ans=state.pAns||{};state.checked=state.pChecked||{};state.submitted=false}state.mode='practice';save();render()};
+$('#onlyMiss').onchange=e=>{state.onlyMiss=e.target.checked;save();render()};
+$('#reveal').onclick=()=>{state.reveal=!state.reveal;save();render()};
+$('#reset').onclick=()=>{state.ans={};state.checked={};state.submitted=false;state.reveal=false;order=BANK.map((_,i)=>i);save();render()};
+$('#submit').onclick=()=>{if(state.submitted)return startTest(state.testN||25);state.submitted=true;save();render();window.scrollTo({top:0,behavior:'smooth'})};
+if(state.mode==='test'&&!(state.testIds&&state.testIds.length))state.mode='practice';
+
+$('#cov').innerHTML=Object.keys(TOPIC).map(w=>{const s=SCORE[w];const c=s.startsWith('not')?'none':s.endsWith('10/10')?'full':'part';
+  return `<div class="cov ${c}"><b>Week ${w}</b><br>${TOPIC[w]}<br><small>${s}</small></div>`}).join('');
+render();
+</script>
+
+</body></html>
